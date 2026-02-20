@@ -2,16 +2,32 @@ import mongoose from "mongoose";
 
 const flashcardSchema = new mongoose.Schema(
   {
+    isGlobal: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+      type: String,
+      required: false,
     },
 
     documentId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Document",
-      required: true,
+      type: String,
+    },
+    courseId: {
+      type: String,
+      required: false,
+    },
+    lessonId: {
+      type: String,
+      index: true,
+    },
+
+    supabaseLessonId: {
+      type: String,
+      index: true,
     },
 
     cards: [
@@ -51,10 +67,29 @@ const flashcardSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-flashcardSchema.index({ userId: 1, documentId: 1 });
+flashcardSchema.index(
+  { userId: 1, documentId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { documentId: { $exists: true, $ne: null } },
+  },
+);
 
-const Flashcard = mongoose.model("Flashcard", flashcardSchema);
+flashcardSchema.index(
+  { userId: 1, lessonId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      lessonId: { $exists: true, $ne: null },
+      isGlobal: false,
+    },
+  },
+);
+
+const Flashcard =
+  mongoose.models.Flashcard || mongoose.model("Flashcard", flashcardSchema);
+
 export default Flashcard;

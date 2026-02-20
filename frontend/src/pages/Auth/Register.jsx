@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import authService from "../../services/authService";
-import { BookOpen, Mail, Lock, ArrowRight, User } from "lucide-react";
+import { supabase } from "../../lib/supabase";
+import { BookOpen, Mail, Lock, ArrowRight, User, Brain } from "lucide-react";
 import toast from "react-hot-toast";
 
 const Register = () => {
   const [username, setUsername] = useState("");
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [focusedField, setFocusedField] = useState(null);
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!username || !email || !password) {
       setError("All fields are required");
       return;
@@ -28,164 +28,192 @@ const Register = () => {
 
     setError("");
     setLoading(true);
-    try {
-      await authService.register(username, email, password);
-      toast.success("Registered successfully! Please Login");
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: username, // stored in user_metadata
+        },
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+      toast.error(error.message);
+    } else {
+      toast.success("Account created! Please login.");
       navigate("/login");
-    } catch (err) {
-      setError(err.response?.data?.error || "Registration failed");
-      toast.error("Failed to register. Please check your credentials.");
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <div className=" absolute inset-0 bg-[radial-gradient(#e5e7eb_1px, transparent_1px)] bg-[length:16px_16px] opacity-30 " />
-      <div className="relative w-full max-w-md px-6">
-        <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-xl shadow-slate-200/50 p-10">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-300 shadow-sm mb-5">
-              <BookOpen className="" strokeWidth={1.95} />
+    <div className="min-h-screen flex bg-[#f7f7f6] font-[Inter]">
+      {/* LEFT HERO PANEL */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0F172A] text-white p-16 flex-col justify-between">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#0F172A] via-[#0F172A]/80 to-[#4F9CF9]/20" />
+        </div>
+
+        {/* Logo */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-lg border border-[#4F9CF9]/30 bg-[#4F9CF9]/5
+ flex items-center justify-center"
+          >
+            <Brain className="w-8 h-8 text-[#4F9CF9]" strokeWidth={1.2} />
+          </div>
+          <span className="text-2xl font-semibold tracking-tight">
+            Organic Intelligence
+          </span>
+        </div>
+
+        {/* Headline */}
+        <div className="relative z-10 max-w-lg">
+          <h1 className="text-5xl font-semibold leading-tight mb-6">
+            Nurturing the future of{" "}
+            <span className="text-[#4F9CF9] italic">learning</span>
+            <br />
+            through human-centric AI.
+          </h1>
+          <p className="text-lg text-white/70 leading-relaxed">
+            The harmony of nature and artificial intelligence in modern
+            education designed for organic growth.
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="relative z-10 flex gap-10">
+          {" "}
+          <p className="absolute bottom-6 left-6 text-xs text-gray-500 flex items-center gap-2">
+            <span className="w-2 h-2 bg-[#4F9CF9] rounded-full" />
+            LMS PLATFORM v2.4
+          </p>
+        </div>
+      </div>
+
+      {/* RIGHT FORM PANEL */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-24 bg-white">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center gap-2 mb-10">
+            <div className="w-8 h-8 bg-[#4F9CF9] rounded-lg flex items-center justify-center">
+              <Brain className="w-12 h-12 text-[#4F9CF9]" strokeWidth={1.2} />
             </div>
-            <h1 className="text-2xl font-medium text-slate-900 tracking-tight mb-2">
-              Create an account
-            </h1>
-            <p className="text-slate-500 text-sm">Learn smarter. Start here.</p>
+            <span className="text-xl font-semibold">Organic Intelligence</span>
           </div>
 
-          {/*form*/}
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                Username
+          {/* Header */}
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Join Organic Intelligence
+            </h2>
+            <p className="text-gray-500">
+              Start your journey into learning today.
+            </p>
+          </div>
+
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name
               </label>
-              <div className="relative group">
-                <div
-                  className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${
-                    focusedField === "username"
-                      ? "text-blue-500"
-                      : "text-slate-400"
-                  }`}
-                >
-                  <User className="" strokeWidth={2} />
-                </div>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onFocus={() => setFocusedField("username")}
-                  onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10"
-                  placeholder="Enter your username"
-                />
-              </div>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="John Doe"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900 focus:ring-2 focus:ring-[#4F9CF9]/40 focus:border-[#4F9CF9] transition"
+              />
             </div>
 
-            {/*email */}
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email
               </label>
-              <div className="relative group">
-                <div
-                  className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${
-                    focusedField === "email"
-                      ? "text-blue-500"
-                      : "text-slate-400"
-                  }`}
-                >
-                  <Mail className="h-5 w-5" strokeWidth={2} />{" "}
-                </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onFocus={() => setFocusedField("email")}
-                  onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:shadow-lg focus:shadow-blue-500/10"
-                  placeholder="name@mail.com"
-                />
-              </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900 focus:ring-2 focus:ring-[#4F9CF9]/40 focus:border-[#4F9CF9] transition"
+              />
             </div>
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
-              <div className="relative group">
-                <div
-                  className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${
-                    focusedField === "password"
-                      ? "text-blue-500"
-                      : "text-slate-400"
-                  }`}
-                >
-                  <Lock className="h-5 w-5 " strokeWidth={1.8} />
-                </div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setFocusedField("password")}
-                  onBlur={() => setFocusedField(null)}
-                  className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:shadow-lg focus:shadow-blue-500/10"
-                  placeholder="Enter your password"
-                />
-              </div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900 focus:ring-2 focus:ring-[#4F9CF9]/40 focus:border-[#4F9CF9] transition"
+              />
+              <p className="mt-2 text-xs text-gray-400">
+                Must be at least 6 characters long.
+              </p>
             </div>
 
+            {/* Terms */}
+            <div className="flex items-start gap-3 text-sm text-gray-500">
+              <input
+                type="checkbox"
+                className="mt-1 rounded border-gray-300 accent-[#4F9CF9]
+"
+                required
+              />
+              <span>
+                I agree to the{" "}
+                <span className="text-[#4F9CF9] font-medium cursor-pointer">
+                  Terms of Service
+                </span>{" "}
+                and{" "}
+                <span className="text-[#4F9CF9] font-medium cursor-pointer">
+                  Privacy Policy
+                </span>
+                .
+              </span>
+            </div>
+
+            {/* Error */}
             {error && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-3">
-                <p className="text-xs text-red-600 font-medium text-center">
-                  {error}
-                </p>
-              </div>
+              <p className="text-sm text-red-500 text-center">{error}</p>
             )}
 
+            {/* Submit */}
             <button
-              onClick={handleSubmit}
+              type="submit"
               disabled={loading}
-              className="group relative w-full h-12 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-blue-500/25 overflow-hidden"
+              className="w-full py-3.5 rounded-lg bg-[#1E293B] hover:bg-[#0F172A] text-white font-semibold shadow-lg shadow-[#1E293B]/25 transition active:scale-[0.98] disabled:opacity-60"
             >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                {" "}
-                {loading ? (
-                  <>
-                    {" "}
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating account ...
-                  </>
-                ) : (
-                  <>
-                    Create account
-                    <ArrowRight
-                      className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200"
-                      strokeWidth={2.5}
-                    />
-                  </>
-                )}
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              {loading ? "Creating account..." : "Create Account"}
             </button>
-          </div>
-          {/*footer */}
-          <div className="mt-8 pt-6 border-t border-slate-200/60">
-            <p className="text-center text-sm text-slate-600">
+          </form>
+
+          {/* Footer */}
+          <div className="mt-10 text-center">
+            <p className="text-sm text-gray-500">
               Already have an account?
               <Link
                 to="/login"
-                className="font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                className="text-[#4F9CF9] font-semibold hover:underline ml-1"
               >
-                Sign in
+                Sign In
               </Link>
             </p>
           </div>
 
-          {/*fixed footer */}
-          <p className="text-center text-xs text-slate-400 mt-6">
-            All rights reserved
+          <p className="mt-14 text-[10px] text-gray-400 uppercase tracking-widest text-center">
+            © 2026 Organic Intelligence · Learning Platform
           </p>
         </div>
       </div>

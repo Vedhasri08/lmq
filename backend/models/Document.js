@@ -1,17 +1,15 @@
 import mongoose from "mongoose";
 
 export const DOCUMENT_STATUS = {
-  UPLOADED: 0,
-  PROCESSING: 1,
-  READY: 2,
-  FAILED: -1,
+  UPLOADED: "processing",
+  READY: "ready",
+  FAILED: "failed",
 };
 
 const documentSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
     },
 
@@ -36,7 +34,7 @@ const documentSchema = new mongoose.Schema(
       required: true,
     },
     status: {
-      type: Number,
+      type: String,
       enum: Object.values(DOCUMENT_STATUS),
       default: DOCUMENT_STATUS.UPLOADED,
     },
@@ -76,7 +74,7 @@ const documentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 documentSchema.index({ userId: 1, uploadDate: -1 });

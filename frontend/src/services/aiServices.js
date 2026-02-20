@@ -1,12 +1,19 @@
+import axios from "axios";
 import axiosInstance from "../utils/axiosinstance";
 import { API_PATHS } from "../utils/apiPaths";
+import { supabase } from "../lib/supabase";
 
-const generateFlashcards = async (documentId, options = {}) => {
+const generateFlashcards = async ({ documentId, lessonId, count = 10 }) => {
   try {
     const response = await axiosInstance.post(
       API_PATHS.AI.GENERATE_FLASHCARDS,
-      { documentId, ...options }
+      {
+        documentId,
+        lessonId,
+        count,
+      },
     );
+
     return response.data;
   } catch (error) {
     throw (
@@ -15,6 +22,29 @@ const generateFlashcards = async (documentId, options = {}) => {
       }
     );
   }
+};
+
+export const generateLessonFlashcards = async (lessonId, count = 10) => {
+  console.log("Generating flashcards for lesson:", lessonId);
+  console.log("🔥 SERVICE CALLED", lessonId);
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error("User not authenticated");
+  }
+
+  return axios.post(
+    `http://localhost:8000/api/flashcards/lesson/${lessonId}`,
+    { generate: true, count: 10 },
+    {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    },
+  );
 };
 
 const generateQuiz = async (documentId, options = {}) => {
@@ -83,7 +113,7 @@ const explainConcept = async (documentId, concept) => {
 const getChatHistory = async (documentId) => {
   try {
     const response = await axiosInstance.get(
-      API_PATHS.AI.GET_CHAT_HISTORY(documentId)
+      API_PATHS.AI.GET_CHAT_HISTORY(documentId),
     );
     return response.data;
   } catch (error) {
@@ -97,6 +127,7 @@ const getChatHistory = async (documentId) => {
 
 const aiService = {
   generateFlashcards,
+  generateLessonFlashcards,
   generateQuiz,
   generateSummary,
   chat,

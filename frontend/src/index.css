@@ -1,11 +1,12 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 
 @theme {
   --font-display: "Urbanist", sans-serif;
   --breakpoint-3xl: 1920px;
-  --color-primary: #ff9324;
+  --color-primary: #4f9cf9;
 }
 
 @layer base {
@@ -14,6 +15,104 @@
   }
 
   body {
-    background-color: #fcfbfc;
+    background-color: #f8fafc; /* very clean bluish white */
   }
+}
+/* Smooth expand / collapse */
+.expand {
+  overflow: hidden;
+  transition:
+    max-height 300ms ease,
+    opacity 200ms ease;
+}
+
+.expand-open {
+  max-height: 2000px; /* big enough */
+  opacity: 1;
+}
+
+.expand-closed {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Lesson enter animation */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-slide {
+  animation: fadeSlideIn 200ms ease-out;
+}
+.perspective {
+  perspective: 1200px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg);
+    stroke-dashoffset: 280;
+  }
+  50% {
+    stroke-dashoffset: 75;
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+    stroke-dashoffset: 280;
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+.fluid-spinner {
+  animation: orbit 2.2s cubic-bezier(0.445, 0.05, 0.55, 0.95) infinite;
+  transform-origin: center;
+}
+
+.ambient-glow {
+  animation: pulse-soft 4s ease-in-out infinite;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out;
 }

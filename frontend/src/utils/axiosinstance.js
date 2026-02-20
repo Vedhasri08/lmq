@@ -1,45 +1,28 @@
 import axios from "axios";
 import { BASE_URL } from "./apiPaths";
+import { supabase } from "../lib/supabase";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 80000,
   headers: {
-    "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
 
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const accessToken = localStorage.getItem("token");
+  async (config) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    if (session?.access_token) {
+      config.headers.Authorization = `Bearer ${session.access_token}`;
     }
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response) {
-      if (error.response.status === 500) {
-        console.error("Server error. Please try again later.");
-      }
-    } else if (error.code === "ECONNABORTED") {
-      console.error("Request timeout. Please try again.");
-    }
-
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error),
 );
 
 export default axiosInstance;

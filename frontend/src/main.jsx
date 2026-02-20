@@ -11,5 +11,5 @@ createRoot(document.getElementById("root")).render(
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <App />
     </AuthProvider>
-  </StrictMode>
+  </StrictMode>,
 );

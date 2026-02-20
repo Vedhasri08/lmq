@@ -1,15 +1,21 @@
-import AppLayout from "components/layout/AppLayout";
-import { useAuth } from "../../context/AuthContent";
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import AppLayout from "components/layout/AppLayout";
+import useSupabaseAuth from "../../hooks/useSupabaseAuth";
 
 const ProtectedRoute = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const user = useSupabaseAuth();
 
-  if (loading) {
-    return <div>Loading...</div>;
+  // While checking auth state
+  if (user === undefined) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
+      </div>
+    );
   }
-  return isAuthenticated ? (
+
+  return user ? (
     <AppLayout>
       <Outlet />
     </AppLayout>

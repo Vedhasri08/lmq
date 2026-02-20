@@ -1,51 +1,42 @@
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import { getSupabaseAuth } from "../lib/supabase.js";
 
 const protect = async (req, res, next) => {
-  console.log("Headers Received:", req.headers.authorization);
-  let token;
+  try {
+    const authHeader = req.headers.authorization;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer ")
-  ) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select("-password");
-
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: "User not found",
-          statusCode: 401,
-        });
-      }
-      next();
-    } catch (error) {
-      console.error("Auth middleware error:", error.message);
-
-      if (error.name === "TokenExpiredError") {
-        return res.status(401).json({
-          success: false,
-          error: "Token has expired",
-          statusCode: 401,
-        });
-      }
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("🔴 No auth header");
       return res.status(401).json({
         success: false,
-        error: "Not authorized, token failed",
-        statusCode: 401,
+        error: "Not authorized, no token",
       });
     }
-  }
 
-  if (!token) {
+    const token = authHeader.split(" ")[1];
+
+    const supabase = getSupabaseAuth();
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error || !data?.user) {
+      console.log("🔴 Invalid token");
+      return res.status(401).json({
+        success: false,
+        error: "Invalid or expired token",
+      });
+    }
+
+    req.user = {
+      id: data.user.id,
+      email: data.user.email,
+      role: data.user.app_metadata?.role || "user", // 🔥 THIS LINE
+    };
+
+    next();
+  } catch (err) {
+    console.error("🔴 Auth middleware crash:", err);
     return res.status(401).json({
       success: false,
-      error: "Not authorized token, no token",
-      statusCode: 401,
+      error: "Unauthorized",
     });
   }
 };

@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 const quizSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
     },
 
@@ -94,7 +93,7 @@ const quizSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 quizSchema.index({ userId: 1, documentId: 1 });

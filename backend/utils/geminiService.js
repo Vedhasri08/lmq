@@ -2,22 +2,35 @@ import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+/* ------------------ ENV VALIDATION ------------------ */
 if (!process.env.GEMINI_API_KEY) {
-  console.error(" FATAL ERROR: GEMINI_API_KEY is not set");
+  console.error("❌ FATAL ERROR: GEMINI_API_KEY is not set");
   process.exit(1);
 }
 
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+/* ------------------ FLASHCARDS ------------------ */
+/**
+ * Generate flashcards from text
+ * @param {string} text
+ * @param {number} count
+ * @returns {Promise<Array<{question:string, answer:string, difficulty:string}>>}
+ */
 export const generateFlashcards = async (text, count = 10) => {
-  const prompt = `Generate exactly ${count} educational flashcards from the text below.
+  const prompt = `
+Generate exactly ${count} educational flashcards from the text below.
 
 Format each flashcard strictly as:
 Q: question
 A: answer
 D: easy | medium | hard
 
-Separate each flashcard using "---"
+Separate each flashcard using:
+---
 
 Text:
 ${text.substring(0, 15000)}
@@ -41,18 +54,15 @@ ${text.substring(0, 15000)}
       let question = "";
       let answer = "";
       let difficulty = "medium";
+
       const lines = card.split("\n");
 
       for (const line of lines) {
-        if (line.startsWith("Q:")) {
-          question = line.substring(2).trim();
-        } else if (line.startsWith("A:")) {
-          answer = line.substring(2).trim();
-        } else if (line.startsWith("D:")) {
+        if (line.startsWith("Q:")) question = line.substring(2).trim();
+        if (line.startsWith("A:")) answer = line.substring(2).trim();
+        if (line.startsWith("D:")) {
           const diff = line.substring(2).trim().toLowerCase();
-          if (["easy", "medium", "hard"].includes(diff)) {
-            difficulty = diff;
-          }
+          if (["easy", "medium", "hard"].includes(diff)) difficulty = diff;
         }
       }
 
@@ -68,6 +78,10 @@ ${text.substring(0, 15000)}
   }
 };
 
+/* ------------------ QUIZ ------------------ */
+/**
+ * Generate quiz questions
+ */
 export const generateQuiz = async (text, numQuestions = 5) => {
   const prompt = `
 Generate exactly ${numQuestions} multiple-choice questions.
@@ -96,7 +110,11 @@ ${text.substring(0, 15000)}
     });
 
     const generatedText = response.text;
-    const blocks = generatedText.split("---").filter((q) => q.trim());
+    const blocks = generatedText
+      .split("---")
+      .map((b) => b.trim())
+      .filter(Boolean);
+
     const questions = [];
 
     for (const block of blocks) {
@@ -106,19 +124,15 @@ ${text.substring(0, 15000)}
       let explanation = "";
       let difficulty = "medium";
 
-      const lines = block.trim().split("\n");
+      const lines = block.split("\n");
 
       for (const line of lines) {
         const t = line.trim();
-        if (t.startsWith("Q:")) {
-          question = t.substring(2).trim();
-        } else if (t.match(/^0\d:/)) {
-          options.push(t.substring(3).trim());
-        } else if (t.startsWith("C:")) {
-          correctAnswer = t.substring(2).trim();
-        } else if (t.startsWith("E:")) {
-          explanation = t.substring(2).trim();
-        } else if (t.startsWith("D:")) {
+        if (t.startsWith("Q:")) question = t.substring(2).trim();
+        else if (/^0\d:/.test(t)) options.push(t.substring(3).trim());
+        else if (t.startsWith("C:")) correctAnswer = t.substring(2).trim();
+        else if (t.startsWith("E:")) explanation = t.substring(2).trim();
+        else if (t.startsWith("D:")) {
           const diff = t.substring(2).trim().toLowerCase();
           if (["easy", "medium", "hard"].includes(diff)) difficulty = diff;
         }
@@ -137,11 +151,12 @@ ${text.substring(0, 15000)}
 
     return questions.slice(0, numQuestions);
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini Quiz Error:", error);
     throw new Error("Failed to generate quiz");
   }
 };
 
+/* ------------------ SUMMARY ------------------ */
 export const generateSummary = async (text) => {
   const prompt = `
 Provide a concise, structured summary highlighting key ideas.
@@ -156,11 +171,9 @@ ${text.substring(0, 20000)}
       contents: prompt,
     });
 
-    const generatedText = response.text;
-
-    return generatedText;
+    return response.text;
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini Summary Error:", error);
     throw new Error("Failed to generate summary");
   }
 };
@@ -175,9 +188,12 @@ export const chatWithContext = async (question, chunks) => {
 Answer the question using ONLY the context below.
 If the answer is not present, say so.
 
-Context: ${context}
-Question: ${question}
-Answer: `;
+Context:
+${context}
+
+Question:
+${question}
+`;
 
   try {
     const response = await ai.models.generateContent({
@@ -187,11 +203,12 @@ Answer: `;
 
     return response.text;
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini Chat Error:", error);
     throw new Error("Failed to process chat");
   }
 };
 
+/* ------------------ EXPLAIN CONCEPT ------------------ */
 export const explainConcept = async (concept, context) => {
   const prompt = `
 Explain "${concept}" clearly using the context below.
@@ -209,7 +226,7 @@ ${context.substring(0, 10000)}
 
     return response.text;
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini Explain Error:", error);
     throw new Error("Failed to explain concept");
   }
 };

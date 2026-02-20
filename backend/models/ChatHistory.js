@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 const chatHistorySchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
     },
 
@@ -41,7 +40,7 @@ const chatHistorySchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 chatHistorySchema.index({ userId: 1, documentId: 1 });

@@ -10,9 +10,25 @@ import upload from "../config/multer.js";
 
 const router = express.Router();
 
+// ✅ Apply auth ONCE
 router.use(protect);
 
-router.post("/upload", protect, upload.single("file"), uploadDocument);
+router.post(
+  "/upload",
+  (req, res, next) => {
+    upload.single("file")(req, res, function (err) {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          error: err.message,
+        });
+      }
+      next();
+    });
+  },
+  uploadDocument,
+);
+
 router.get("/", getDocuments);
 router.get("/:id", getDocument);
 router.delete("/:id", deleteDocument);

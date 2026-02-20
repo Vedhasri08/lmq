@@ -1,9 +1,29 @@
 import Quiz from "../models/Quiz.js";
 
+// controller
+export const getAllQuizzes = async (req, res) => {
+  try {
+    const quizzes = await Quiz.find({
+      userId: req.user.id,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: quizzes.length,
+      data: quizzes,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch quizzes",
+    });
+  }
+};
+
 export const getQuizzes = async (req, res, next) => {
   try {
     const quizzes = await Quiz.find({
-      userId: req.user._id,
+      userId: req.user.id,
       documentId: req.params.documentId,
     })
       .populate("documentId", "title name")
@@ -21,7 +41,7 @@ export const getQuizById = async (req, res, next) => {
   try {
     const quiz = await Quiz.findOne({
       _id: req.params.id,
-      userId: req.user._id,
+      userId: req.user.id,
     });
 
     if (!quiz) {
@@ -53,7 +73,7 @@ export const submitQuiz = async (req, res, next) => {
 
     const quiz = await Quiz.findOne({
       _id: req.params.id,
-      userId: req.user._id,
+      userId: req.user.id,
     });
 
     if (!quiz) {
@@ -121,7 +141,7 @@ export const getQuizResults = async (req, res, next) => {
   try {
     const quiz = await Quiz.findOne({
       _id: req.params.id,
-      userId: req.user._id,
+      userId: req.user.id,
     }).populate("documentId", "title");
 
     if (!quiz) {
@@ -142,7 +162,7 @@ export const getQuizResults = async (req, res, next) => {
 
     const detailedResults = quiz.questions.map((question, index) => {
       const userAnswer = quiz.userAnswers.find(
-        (a) => a.questionIndex === index
+        (a) => a.questionIndex === index,
       );
 
       return {
@@ -177,7 +197,7 @@ export const deleteQuiz = async (req, res, next) => {
   try {
     const quiz = await Quiz.findOne({
       _id: req.params.id,
-      userId: req.user._id,
+      userId: req.user.id,
     });
 
     if (!quiz) {

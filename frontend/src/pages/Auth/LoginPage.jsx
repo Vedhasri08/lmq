@@ -1,159 +1,176 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContent";
-import authService from "../../services/authService";
-import { BookOpen, Mail, Lock, ArrowRight } from "lucide-react";
+import { supabase } from "../../lib/supabase";
 import toast from "react-hot-toast";
+import { Mail, Lock, Brain } from "lucide-react";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [focusedField, setFocusedField] = useState(null);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
-    try {
-      const { token, user } = await authService.login(email, password);
-      login(user, token);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
       toast.success("Logged in successfully!");
       navigate("/dashboard");
-    } catch (err) {
-      setError("Failed to login. Please check your credentials.");
-      toast.error("Failed to login. Please check your credentials.");
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <div className=" absolute inset-0 bg-[radial-gradient(#e5e7eb_1px, transparent_1px)] bg-[length:16px_16px] opacity-10 " />
-      <div className="relative w-full max-w-md px-6">
-        <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-xl shadow-slate-200/50 p-10">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-300 shadow-sm mb-5">
-              <BookOpen className="" strokeWidth={1.95} />
+    <div className="min-h-screen flex bg-[#f7f7f6] font-[Inter]">
+      {/* LEFT HERO PANEL */}
+      <div className="relative hidden lg:flex lg:w-1/2 bg-[#020617] items-center justify-center overflow-hidden">
+        {/* Radial gold glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(79,156,249,0.18)_0%,rgba(26,26,26,0)_70%)] pointer-events-none" />
+
+        <div className="relative z-10 text-center px-12">
+          {/* Logo */}
+          <div
+            className="mb-8 inline-flex items-center justify-center w-24 h-24 rounded-xl border border-[#4F9CF9]/30 bg-[#4F9CF9]/5
+"
+          >
+            <Brain className="w-12 h-12 text-[#4F9CF9]" strokeWidth={1.2} />
+          </div>
+
+          <h1 className="text-4xl font-light tracking-widest text-white mb-4 uppercase">
+            Organic{" "}
+            <span className="font-bold text-[#4F9CF9]">Intelligence</span>
+          </h1>
+
+          <p className="text-gray-400 text-lg max-w-md mx-auto leading-relaxed">
+            Nurturing the human element of technology through sophisticated
+            learning systems.
+          </p>
+
+          {/* Divider */}
+          <div className="mt-12 flex justify-center space-x-4">
+            <div className="h-px w-12 bg-[#4F9CF9]/40 mt-3" />
+            <div className="w-2 h-2 rounded-full bg-[#4F9CF9]" />
+            <div className="h-px w-12 bg-[#4F9CF9]/40 mt-3" />
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT LOGIN PANEL */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-24 bg-white">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex justify-center mb-10">
+            <div className="flex items-center gap-2">
+              <span className="text-3xl text-[#4F9CF9]">🧠</span>
+              <span className="text-xl font-bold">Organic Intelligence</span>
             </div>
-            <h1 className="text-2xl font-medium text-slate-900 tracking-tight mb-2">
-              Welcome Back:)
-            </h1>
-            <p className="text-slate-500 text-sm">
-              Sign in to continue your journey
+          </div>
+
+          {/* Header */}
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome Back
+            </h2>
+            <p className="text-gray-500">
+              Please enter your credentials to access your workspace.
             </p>
           </div>
 
-          {/* form */}
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <div className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                <label className="">Email</label>
-                <div className="relative group">
-                  <div
-                    className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${
-                      focusedField === "email"
-                        ? "text-blue-500"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    <Mail className="h-5 w-5" strokeWidth={2} />{" "}
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onFocus={() => setFocusedField("email")}
-                    className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:shadow-lg focus:shadow-blue-500/10"
-                    placeholder="name@mail.com"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                  Password
-                </label>
-                <div className="relative group">
-                  <div
-                    className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${
-                      focusedField === "password"
-                        ? "text-blue-500"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    <Lock className="h-5 w-5 " strokeWidth={1.8}></Lock>
-                  </div>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onFocus={() => setFocusedField("password")}
-                    onBlur={() => setFocusedField(null)}
-                    className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:shadow-lg focus:shadow-blue-500/10"
-                    placeholder="Enter your password"
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <div className="rounded-lg bg-red-50 border border-red-200 p-3">
-                  <p className="text-xs text-red-600 font-medium text-center">
-                    {error}
-                  </p>
-                </div>
-              )}
-
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="group relative w-full h-12 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-blue-500/25 overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  {" "}
-                  {loading ? (
-                    <>
-                      {" "}
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Signing in ...
-                    </>
-                  ) : (
-                    <>
-                      Sign in
-                      <ArrowRight
-                        className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200"
-                        strokeWidth={2.5}
-                      />
-                    </>
-                  )}
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              </button>
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email */}
+            <div className="relative">
+              <Mail
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+                strokeWidth={1.5}
+              />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                required
+                className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900
+    focus:ring-1 focus:ring-[#4F9CF9] focus:border-[#4F9CF9]
+ outline-none transition"
+              />
             </div>
-          </div>
 
-          {/*footer */}
-          <div className="mt-8 pt-6 border-t border-slate-200/60">
-            <p className="text-center text-sm text-slate-600">
-              Don't have an account?
+            {/* Password */}
+            <div className="relative">
+              <Lock
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+                strokeWidth={1.5}
+              />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900
+    focus:ring-1 focus:ring-[#4F9CF9] focus:border-[#4F9CF9]
+ outline-none transition"
+              />
+            </div>
+
+            {/* Remember me */}
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-gray-300 accent-[#4F9CF9]
+"
+              />
+              <span>Keep me logged in for 30 days</span>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 rounded-lg bg-[#1E293B] hover:bg-[#0F172A] text-white font-semibold shadow-lg shadow-[#1E293B]/25 transition active:scale-[0.98] disabled:opacity-60"
+            >
+              {loading ? "Signing in..." : "Sign In to Dashboard"}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="mt-12 text-center">
+            <p className="text-sm text-gray-500">
+              Don’t have an account?
               <Link
-                to="/register "
-                className="font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                to="/register"
+                className="ml-1 font-bold text-[#4F9CF9] hover:underline"
               >
-                Sign up
+                Create Account
               </Link>
             </p>
           </div>
-        </div>
 
-        {/*fixed footer */}
-        <p className="text-center text-xs text-slate-400 mt-6">
-          All rights reserved
-        </p>
+          <div className="mt-24 pt-8 border-t border-gray-100 text-[10px] uppercase tracking-widest text-gray-400 flex justify-between">
+            <span>© 2024 Organic Intelligence LMS</span>
+            <span className="flex gap-6">
+              <span className="hover:text-[#4F9CF9] cursor-pointer">
+                Privacy Policy
+              </span>
+              <span className="hover:text-[#4F9CF9] cursor-pointer">
+                Terms of Service
+              </span>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
