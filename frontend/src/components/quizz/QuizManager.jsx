@@ -122,8 +122,20 @@ const QuizManager = ({ documentId }) => {
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-8">
-      {renderQuizContent()}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-lg font-semibold text-slate-900">Assessments</h1>
 
+        <button
+          onClick={() => setIsGenerateModalOpen(true)}
+          className="px-5 py-2.5 bg-[#1E293B] hover:bg-[#0F172A]
+                   text-white text-sm font-semibold rounded-lg shadow-sm
+                   transition flex items-center gap-2"
+        >
+          <Plus size={16} />
+          Generate Quiz
+        </button>
+      </div>{" "}
+      {renderQuizContent()}
       {/* Generate Modal */}
       {isGenerateModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -209,7 +221,6 @@ const QuizManager = ({ documentId }) => {
           </div>
         </div>
       )}
-
       {/* Delete Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">

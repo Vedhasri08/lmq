@@ -81,7 +81,7 @@ const DocumentDetailPage = () => {
             href={pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-[#1E293B] hover:text-[#0F172A] font-medium transition-colors"
           >
             {" "}
             <ExternalLink size={16} />

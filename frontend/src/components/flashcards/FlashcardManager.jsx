@@ -243,7 +243,9 @@ const FlashcardManager = ({ documentId, lessonId }) => {
           <button
             onClick={handleGenerateFlashcards}
             disabled={generating}
-            className="flex items-center gap-2 px-5 h-10 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg"
+            className="px-5 py-2.5 bg-[#1E293B] hover:bg-[#0F172A]
+                   text-white text-sm font-semibold rounded-lg shadow-sm
+                   transition flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Generate New Set
@@ -268,8 +270,9 @@ const FlashcardManager = ({ documentId, lessonId }) => {
           <button
             onClick={handleGenerateFlashcards}
             disabled={generating}
-            className={` group relative flex items-center gap-2 px-5 h-11 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-500  text-white  shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
-  `}
+            className={` px-5 py-2.5 bg-[#1E293B] hover:bg-[#0F172A]
+                   text-white text-sm font-semibold rounded-lg shadow-sm
+                   transition flex items-center gap-2  `}
           >
             {generating ? (
               <>Generating…</>
@@ -288,7 +291,7 @@ const FlashcardManager = ({ documentId, lessonId }) => {
             <div
               key={set._id}
               onClick={() => handleSelectSet(set)}
-              className="relative w-[260px] bg-white border border-slate-200 rounded-xl p-4 cursor-pointer hover:border-blue-400 transition"
+              className="relative w-[260px] bg-white border border-slate-200 rounded-xl p-4 cursor-pointer hover:border-[#1E293B] transition"
             >
               {/* Delete */}
               <button
@@ -300,11 +303,11 @@ const FlashcardManager = ({ documentId, lessonId }) => {
 
               {/* Icon */}
               <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-50 mb-3">
-                <Brain className="w-5 h-5 text-blue-600" />
+                <Brain className="w-5 h-5 text-[#1E293B]" />
               </div>
 
               {/* Text */}
-              <h4 className="text-sm font-semibold text-slate-900">
+              <h4 className="text-sm font-semibold text-[#0F172A]">
                 Flashcard Set
               </h4>
 
@@ -314,7 +317,7 @@ const FlashcardManager = ({ documentId, lessonId }) => {
 
               {/* Cards Count */}
               <div className="mt-4">
-                <span className="inline-block px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md">
+                <span className="inline-block px-3 py-1 text-xs font-medium bg-[#1E293B] text-white rounded-md">
                   {set.cards.length} cards
                 </span>
               </div>
