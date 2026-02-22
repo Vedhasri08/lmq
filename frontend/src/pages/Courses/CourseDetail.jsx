@@ -18,6 +18,7 @@ const CourseDetail = () => {
   const [openSections, setOpenSections] = useState({});
   const [completedLessons, setCompletedLessons] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [lessonQuizzes, setLessonQuizzes] = useState({});
 
   const toggleSection = (sectionId) => {
     setOpenSections((prev) => ({
@@ -75,6 +76,37 @@ const CourseDetail = () => {
     fetchAll();
   }, [slug]);
 
+  const checkQuizExists = async (lessonId) => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const res = await fetch(
+        `http://localhost:8000/api/quizzes/lesson/${lessonId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        },
+      );
+
+      setLessonQuizzes((prev) => ({
+        ...prev,
+        [lessonId]: res.ok,
+      }));
+    } catch (err) {
+      console.error("Quiz check failed:", lessonId);
+    }
+  };
+
+  useEffect(() => {
+    if (lessons.length > 0) {
+      lessons.forEach((lesson) => {
+        checkQuizExists(lesson.id);
+      });
+    }
+  }, [lessons]);
   if (!course) {
     return (
       <div className="flex items-center justify-center h-screen text-slate-500">
@@ -218,7 +250,12 @@ const CourseDetail = () => {
           >
             View Flashcards
           </button>
-          <button className="w-full px-4 py-2.5 text-[#1E293B] hover:text-[#0F172A] text-sm font-bold mt-3">
+          <button
+            onClick={() =>
+              navigate(`/courses/${slug}/lessons/${lessonId}/quiz`)
+            }
+            className="w-full px-4 py-2.5 text-[#1E293B] hover:text-[#0F172A] text-sm font-bold mt-3"
+          >
             Go to Quiz
           </button>
         </div>

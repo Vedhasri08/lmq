@@ -1,5 +1,5 @@
 import express from "express";
-
+import adminOnly from "../middleware/adminOnly.js";
 import {
   getQuizzes,
   getQuizById,
@@ -7,6 +7,10 @@ import {
   submitQuiz,
   getQuizResults,
   deleteQuiz,
+  getMyQuizAttempt,
+  generateLessonQuiz,
+  getLessonQuiz,
+  getCourseScore,
 } from "../controllers/quizController.js";
 import protect from "../middleware/auth.js";
 
@@ -19,6 +23,10 @@ router.use(protect);
 
 router.get("/", getAllQuizzes);
 router.get("/document/:documentId", getQuizzes);
+router.get("/:quizId/my-attempt", getMyQuizAttempt);
+router.post("/lesson/generate", adminOnly, generateLessonQuiz);
+router.get("/lesson/:lessonId", getLessonQuiz);
+router.get("/course/:courseId/score", protect, getCourseScore);
 router.get("/:id", getQuizById);
 router.post("/:id/submit", submitQuiz);
 router.get("/:id/results", getQuizResults);

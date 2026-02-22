@@ -19,6 +19,7 @@ import CourseDetail from "./pages/Courses/CourseDetail";
 import FlashCard from "pages/FlashCard/FlashCard";
 import FlashcradList from "pages/FlashCard/FlashcardList";
 import QuizResult from "pages/Quiz/QuizResult";
+import LessonQuiz from "pages/Quiz/LessonQuiz";
 import ProfilePage from "pages/Profile/ProfilePage";
 import QuizTake from "pages/Quiz/QuizTake";
 import CourseFlashcards from "pages/Courses/CourseFlashcards";
@@ -95,6 +96,14 @@ const App = () => {
             <Route path="lessons/:lessonId" element={<LessonDetail />} />
           </Route>
           <Route path="/flashcards" element={<FlashcradList />} />
+          <Route path="/courses/:slug" element={<CourseDetail />}>
+            <Route path="lessons/:lessonId" element={<LessonDetail />} />
+            <Route
+              path="lessons/:lessonId/quiz"
+              element={<LessonQuiz />}
+            />{" "}
+            {/* ✅ */}
+          </Route>
           <Route path="/documents/:id/flashcards" element={<FlashCard />} />
           <Route path="/quizzes/:quizId" element={<QuizTake />} />
           <Route path="/quizzes/:quizId/results" element={<QuizResult />} />

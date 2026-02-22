@@ -4,15 +4,28 @@ const quizSchema = new mongoose.Schema(
   {
     userId: {
       type: String,
-      required: true,
+      required: false,
     },
 
     documentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Document",
-      required: true,
+      required: false,
+    },
+    lessonId: {
+      type: String, // Supabase lesson id
+      default: null,
     },
 
+    courseId: {
+      type: String,
+      default: null,
+    },
+
+    isShared: {
+      type: Boolean,
+      default: false,
+    },
     title: {
       type: String,
       required: true,
