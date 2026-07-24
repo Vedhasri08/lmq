@@ -141,14 +141,41 @@ npm run dev
 
 # 🔑 Environment Variables
 
-Create a `.env` file inside the backend directory.
+
+Create the following `.env` files before running the project.
+
+## Backend (`backend/.env`)
 
 ```env
-PORT=
+MONGODB_URI=your_mongodb_connection_string
 
-MONGO_URI=
+PORT=8000
 
-JWT_SECRET=
+JWT_SECRET=your_jwt_secret
+
+JWT_EXPIRE=7d
+
+NODE_ENV=development
+
+MAX_FILE_SIZE=10485760
+
+GEMINI_API_KEY=your_gemini_api_key
+
+SUPABASE_URL=your_supabase_url
+
+SUPABASE_SERVICE_KEY=your_supabase_service_key
+
+SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+---
+
+## Frontend (`frontend/.env`)
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ---
