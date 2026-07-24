@@ -162,13 +162,7 @@ JWT_SECRET=
 - Notifications
 - Leaderboards
 
----
 
-# 👨‍💻 Author
-
-**Vedha**
-
-GitHub: https://github.com/Vedhasri08
 
 ---
 
