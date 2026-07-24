@@ -2,7 +2,6 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import toast from "react-hot-toast";
-
 import { Info } from "lucide-react";
 
 const LessonQuiz = () => {
@@ -23,13 +22,13 @@ const LessonQuiz = () => {
   useEffect(() => {
     fetchQuiz();
   }, []);
+
   useEffect(() => {
     if (showResults && resultData?.score !== undefined) {
       let start = 0;
       const end = resultData.score;
-      const duration = 800; // animation speed
+      const duration = 800;
       const stepTime = 16;
-
       const increment = end / (duration / stepTime);
 
       const counter = setInterval(() => {
@@ -46,6 +45,7 @@ const LessonQuiz = () => {
       return () => clearInterval(counter);
     }
   }, [showResults, resultData]);
+
   const handleOptionSelect = (questionIndex, option) => {
     if (showResults || quizLocked) return;
 
@@ -71,12 +71,9 @@ const LessonQuiz = () => {
       );
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error);
 
       setQuiz(data.data);
-
-      // ✅ Fetch previous attempt
       fetchPreviousAttempt(data.data._id);
     } catch (err) {
       toast.error("Quiz not available");
@@ -92,7 +89,7 @@ const LessonQuiz = () => {
       } = await supabase.auth.getSession();
 
       const res = await fetch(
-        `http://localhost:8000/api/quizzes/${quizId}/my-attempt`, // ✅ correct endpoint
+        `http://localhost:8000/api/quizzes/${quizId}/my-attempt`,
         {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
@@ -100,18 +97,12 @@ const LessonQuiz = () => {
         },
       );
 
-      console.log("Attempt API status:", res.status); // ✅ debug
-
-      // ✅ HANDLE "NOT ATTEMPTED"
       if (res.status === 404) {
-        console.log("✅ No previous attempt");
-
         setPreviousAttempt(null);
         setShowResults(false);
         setResultData(null);
         setQuizLocked(false);
         setAttemptsLeft(2);
-
         return;
       }
 
@@ -123,15 +114,15 @@ const LessonQuiz = () => {
       setPreviousAttempt(attempt);
       setAttemptsLeft(attempt.attemptsLeft);
 
-      // ✅ Restore results view
-      setResultData(attempt);
-      setShowResults(true);
-
-      if (attempt.attemptsLeft <= 0) {
-        setQuizLocked(true);
+      if (attempt && attempt.answers && attempt.answers.length > 0) {
+        setResultData(attempt);
+        setShowResults(true);
+      } else {
+        setShowResults(false);
       }
 
-      // ✅ Restore answers
+      if (attempt.attemptsLeft <= 0) setQuizLocked(true);
+
       const restoredAnswers = {};
       attempt.answers.forEach((a) => {
         restoredAnswers[a.questionIndex] = a.selectedAnswer;
@@ -180,7 +171,6 @@ const LessonQuiz = () => {
       );
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error);
 
       setResultData(data.data);
@@ -189,9 +179,7 @@ const LessonQuiz = () => {
 
       toast.success("Results ready ✅", { id: toastId });
 
-      if (data.data.attemptsLeft <= 0) {
-        setQuizLocked(true);
-      }
+      if (data.data.attemptsLeft <= 0) setQuizLocked(true);
     } catch (err) {
       toast.error(err.message || "Failed to check results ❌", {
         id: toastId,
@@ -217,7 +205,6 @@ const LessonQuiz = () => {
     <div className="p-6 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">{quiz.title}</h1>
 
-      {/* ✅ Locked Banner */}
       {quizLocked && (
         <div className="mb-6 p-4 rounded-lg bg-amber-50 border border-amber-300">
           <h2 className="font-bold text-lg">Attempts Exhausted 🚫</h2>
@@ -229,170 +216,114 @@ const LessonQuiz = () => {
         </div>
       )}
 
-      {/* ✅ Score Panel */}
       {showResults && resultData && (
-        <div className="mb-6 bg-slate-50 border border-blue-100 rounded-2xl p-8 shadow-sm w-full">
-          {/* Score Header */}
-          <div className="mb-5">
-            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
-              Score: {animatedScore}%
-            </h2>
+        <div className="mb-6 bg-slate-50 border border-blue-100 rounded-2xl p-8 shadow-sm">
+          <h2 className="text-2xl font-bold mb-2">Score: {animatedScore}%</h2>
 
-            <p className="text-sm font-medium text-slate-500">
-              Correct: {resultData.correctCount} / {resultData.totalQuestions}
-            </p>
-          </div>
+          <p className="text-sm text-slate-500 mb-4">
+            Correct: {resultData.correctCount} / {resultData.totalQuestions}
+          </p>
 
-          {/* Progress Bar */}
           <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full bg-blue-300 transition-all duration-1000 ease-out"
+              className="h-full bg-blue-300 transition-all duration-1000"
               style={{ width: `${resultData.score}%` }}
             />
           </div>
         </div>
       )}
-      <div className="w-full flex justify-center">
-        <div className="w-full max-w-5xl">
-          {" "}
-          {/* ⬅ wider container */}
-          {quiz.questions.map((q, index) => {
-            const attemptAnswer = resultData?.answers?.find(
-              (a) => a.questionIndex === index,
-            );
 
-            const userAnswer = attemptAnswer?.selectedAnswer;
-            const isCorrect = attemptAnswer?.isCorrect;
+      {quiz.questions.map((q, index) => {
+        const attemptAnswer =
+          showResults && resultData?.answers
+            ? resultData.answers.find((a) => a.questionIndex === index)
+            : null;
 
-            return (
-              <div
-                key={index}
-                className="mb-6 rounded-2xl bg-white shadow-sm overflow-hidden w-full max-w-5xl"
-              >
-                <div className="flex">
-                  {/* Left Accent */}
-                  <div
-                    className={`w-1.5 ${
-                      isCorrect ? "bg-emerald-500" : "bg-red-500"
+        const userAnswer = attemptAnswer?.selectedAnswer ?? null;
+        const isCorrect = attemptAnswer?.isCorrect ?? null;
+
+        return (
+          <div key={index} className="mb-6 bg-white rounded-xl shadow p-6">
+            <p className="text-xs text-slate-400 font-bold">
+              QUESTION {index + 1}
+            </p>
+
+            <p className="font-semibold mb-4">{q.question}</p>
+
+            <div className="space-y-2">
+              {q.options.map((option, i) => {
+                const isSelected = selectedAnswers[index] === option;
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleOptionSelect(index, option)}
+                    disabled={showResults || quizLocked}
+                    className={`w-full text-left px-4 py-2 rounded-lg border ${
+                      isSelected
+                        ? "bg-indigo-100 border-indigo-400"
+                        : "border-slate-200 hover:bg-slate-50"
                     }`}
-                  />
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
 
-                  {/* Content */}
-                  <div className="flex-1 px-6 py-4">
-                    {" "}
-                    {/* ⬅ less vertical padding */}
-                    {/* Header */}
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-[11px] font-bold text-slate-400 tracking-wide">
-                          QUESTION {index + 1}
-                        </p>
+            {showResults && (
+              <div className="mt-4 grid md:grid-cols-2 gap-4">
+                <div className="p-3 bg-slate-50 rounded border">
+                  <p className="text-xs font-bold text-slate-500">
+                    YOUR ANSWER
+                  </p>
+                  <p>{userAnswer || "Not Answered"}</p>
+                </div>
 
-                        <p className="font-semibold text-slate-800 mt-1">
-                          {q.question}
-                        </p>
-                      </div>
-
-                      <span
-                        className={`text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1
-                    ${
-                      isCorrect
-                        ? "bg-emerald-100 text-emerald-600"
-                        : "bg-red-100 text-red-500"
-                    }`}
-                      >
-                        {isCorrect ? "✔ CORRECT" : "✖ INCORRECT"}
-                      </span>
-                    </div>
-                    {/* Answers */}
-                    <div className="grid md:grid-cols-2 gap-4 mt-3">
-                      <div
-                        className={`p-3 rounded-xl border
-                    ${
-                      isCorrect
-                        ? "bg-emerald-50 border-emerald-200"
-                        : "bg-red-50 border-red-200"
-                    }`}
-                      >
-                        <p
-                          className={`text-[11px] font-bold mb-1
-                      ${isCorrect ? "text-emerald-600" : "text-red-500"}`}
-                        >
-                          YOUR ANSWER
-                        </p>
-
-                        <p className="text-sm font-medium text-slate-700">
-                          {userAnswer || "Not Answered"}
-                        </p>
-                      </div>
-
-                      <div className="p-3 rounded-xl border bg-slate-50 border-slate-200">
-                        <p className="text-[11px] font-bold text-slate-500 mb-1">
-                          CORRECT ANSWER
-                        </p>
-
-                        <p className="text-sm font-medium text-slate-700">
-                          {q.correctAnswer}
-                        </p>
-                      </div>
-                    </div>
-                    {/* Explanation */}
-                    {q.explanation && (
-                      <div className="mt-3 bg-slate-50 border rounded-xl p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="w-6 h-6 rounded-full bg-slate-900 flex items-center justify-center">
-                            <Info className="w-3.5 h-3.5 text-white" />
-                          </div>
-
-                          <p className="text-[11px] font-bold text-slate-600">
-                            Helpful Explanation
-                          </p>
-                        </div>
-
-                        <p className="text-xs text-slate-500">
-                          {q.explanation}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                <div className="p-3 bg-slate-50 rounded border">
+                  <p className="text-xs font-bold text-slate-500">
+                    CORRECT ANSWER
+                  </p>
+                  <p>{q.correctAnswer}</p>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
-      {/* ✅ Buttons */}
+            )}
+
+            {q.explanation && showResults && (
+              <div className="mt-4 p-3 border bg-slate-50 rounded">
+                <div className="flex items-center gap-2 mb-1">
+                  <Info size={16} />
+                  <span className="text-xs font-bold">Helpful Explanation</span>
+                </div>
+                <p className="text-sm">{q.explanation}</p>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
       <div className="mt-8 flex justify-end gap-4">
         {quizLocked ? (
           <button
             disabled
-            className="px-6 py-2.5 rounded-lg font-bold bg-slate-400 text-white"
+            className="px-6 py-2 rounded-lg bg-slate-400 text-white"
           >
             Attempts Exhausted
           </button>
         ) : !showResults ? (
           <button
             onClick={handleCheckResults}
-            disabled={submitting || attemptsLeft <= 0}
-            className={`px-6 py-2.5 rounded-lg font-bold shadow-lg text-white transition
-              ${
-                attemptsLeft <= 0
-                  ? "bg-slate-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:opacity-90"
-              }`}
+            disabled={submitting}
+            className="px-6 py-2 rounded-lg bg-indigo-600 text-white"
           >
-            {attemptsLeft <= 0
-              ? "No Attempts Left"
-              : submitting
-                ? "Checking..."
-                : "Check Results"}
+            {submitting ? "Checking..." : "Check Results"}
           </button>
         ) : (
           resultData?.score < 50 &&
           attemptsLeft > 0 && (
             <button
               onClick={handleRetryQuiz}
-              className="px-6 py-2.5 rounded-lg font-bold shadow-lg text-white bg-amber-500 hover:opacity-90"
+              className="px-6 py-2 rounded-lg bg-amber-500 text-white"
             >
               Retry Quiz
             </button>

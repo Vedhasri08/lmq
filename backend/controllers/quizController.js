@@ -10,10 +10,24 @@ export const getAllQuizzes = async (req, res) => {
       userId: req.user.id,
     }).sort({ createdAt: -1 });
 
+    const quizzesWithAttempts = await Promise.all(
+      quizzes.map(async (quiz) => {
+        const attempt = await QuizAttempt.findOne({
+          quizId: quiz._id,
+          userId: req.user.id,
+        }).sort({ createdAt: -1 });
+
+        return {
+          ...quiz.toObject(),
+          attemptNumber: attempt?.attemptNumber || 0,
+          score: attempt?.score || 0,
+        };
+      }),
+    );
+
     res.status(200).json({
       success: true,
-      count: quizzes.length,
-      data: quizzes,
+      data: quizzesWithAttempts,
     });
   } catch (err) {
     res.status(500).json({
@@ -22,8 +36,7 @@ export const getAllQuizzes = async (req, res) => {
     });
   }
 };
-
-export const getQuizzes = async (req, res, next) => {
+export const getQuizzes = async (req, res) => {
   try {
     const quizzes = await Quiz.find({
       userId: req.user.id,
@@ -32,12 +45,33 @@ export const getQuizzes = async (req, res, next) => {
       .populate("documentId", "title name")
       .sort({ createdAt: -1 });
 
+    const quizzesWithAttempts = await Promise.all(
+      quizzes.map(async (quiz) => {
+        const attempt = await QuizAttempt.findOne({
+          quizId: quiz._id,
+          userId: req.user.id,
+        }).sort({ createdAt: -1 });
+
+        return {
+          ...quiz.toObject(),
+          attemptNumber: attempt?.attemptNumber || 0,
+          score: attempt?.score || 0,
+          completedAt: attempt ? new Date() : null,
+        };
+      }),
+    );
+
     res.status(200).json({
       success: true,
-      count: quizzes.length,
-      data: quizzes,
+      count: quizzesWithAttempts.length,
+      data: quizzesWithAttempts,
     });
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch quizzes",
+    });
+  }
 };
 
 export const getQuizById = async (req, res, next) => {
@@ -66,6 +100,12 @@ export const submitQuiz = async (req, res) => {
   try {
     const { answers } = req.body;
 
+    if (!answers.length) {
+      return res.status(400).json({
+        success: false,
+        error: "Quiz cannot be submitted without answers",
+      });
+    }
     if (!Array.isArray(answers)) {
       return res.status(400).json({
         success: false,
@@ -124,10 +164,14 @@ export const submitQuiz = async (req, res) => {
       userId: req.user.id,
       answers: evaluatedAnswers,
       score,
-      attemptsLeft, // ✅ IMPORTANT
-      attemptNumber, // ✅ OPTIONAL BUT RECOMMENDED
+      attemptsLeft,
+      attemptNumber,
     });
 
+    quiz.completedAt = new Date();
+    quiz.score = score;
+
+    await quiz.save();
     res.status(200).json({
       success: true,
       data: {
@@ -148,41 +192,39 @@ export const submitQuiz = async (req, res) => {
   }
 };
 
-export const getQuizResults = async (req, res, next) => {
+export const getQuizResults = async (req, res) => {
   try {
-    const quiz = await Quiz.findOne({
-      _id: req.params.id,
-      userId: req.user.id,
-    }).populate("documentId", "title");
+    const quiz = await Quiz.findById(req.params.id);
 
     if (!quiz) {
       return res.status(404).json({
         success: false,
         error: "Quiz not found",
-        statusCode: 404,
       });
     }
 
-    if (!quiz.completedAt) {
-      return res.status(400).json({
+    const attempt = await QuizAttempt.findOne({
+      quizId: quiz._id,
+      userId: req.user.id,
+    }).sort({ createdAt: -1 });
+
+    if (!attempt) {
+      return res.status(404).json({
         success: false,
-        error: "Quiz not completed yet",
-        statusCode: 400,
+        error: "No attempt found",
       });
     }
 
     const detailedResults = quiz.questions.map((question, index) => {
-      const userAnswer = quiz.userAnswers.find(
-        (a) => a.questionIndex === index,
-      );
+      const answer = attempt.answers.find((a) => a.questionIndex === index);
 
       return {
         questionIndex: index,
         question: question.question,
         options: question.options,
         correctAnswer: question.correctAnswer,
-        selectedAnswer: userAnswer?.selectedAnswer || null,
-        isCorrect: userAnswer?.isCorrect || false,
+        selectedAnswer: answer?.selectedAnswer || null,
+        isCorrect: answer?.isCorrect || false,
         explanation: question.explanation,
       };
     });
@@ -190,18 +232,21 @@ export const getQuizResults = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: {
-        quiz: {
-          id: quiz._id,
-          title: quiz.title,
-          document: quiz.documentId,
-          score: quiz.score,
-          totalQuestions: quiz.totalQuestions,
-          completedAt: quiz.completedAt,
-        },
+        score: attempt.score,
+        attemptNumber: attempt.attemptNumber,
+        attemptsLeft: attempt.attemptsLeft,
+        totalQuestions: quiz.totalQuestions,
         results: detailedResults,
       },
     });
-  } catch (error) {}
+  } catch (err) {
+    console.error("RESULT ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch results",
+    });
+  }
 };
 
 export const deleteQuiz = async (req, res, next) => {

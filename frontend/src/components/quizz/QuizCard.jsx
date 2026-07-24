@@ -5,6 +5,7 @@ import moment from "moment";
 
 const QuizCard = ({ quiz, onDelete }) => {
   const navigate = useNavigate();
+  console.log("quiz object:", quiz);
   const questionCount = quiz?.questions?.length ?? 0;
 
   return (
@@ -49,11 +50,11 @@ const QuizCard = ({ quiz, onDelete }) => {
       </span>
 
       {/* Action Button */}
-      {quiz?.userAnswers?.length > 0 ? (
+      {quiz?.completedAt ? (
         <Link to={`/quizzes/${quiz._id}/results`}>
           <button className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 text-xs transition">
             <BarChart2 size={14} strokeWidth={2.5} />
-            Results
+            View Results
           </button>
         </Link>
       ) : (

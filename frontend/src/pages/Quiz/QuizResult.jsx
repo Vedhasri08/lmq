@@ -48,11 +48,9 @@ const QuizResult = () => {
   }
 
   const {
-    data: { quiz, results: detailedResults },
+    data: { score, results: detailedResults, totalQuestions },
   } = results;
 
-  const score = quiz.score;
-  const totalQuestions = detailedResults.length;
   const correctAnswers = detailedResults.filter((r) => r.isCorrect).length;
   const incorrectAnswers = totalQuestions - correctAnswers;
 

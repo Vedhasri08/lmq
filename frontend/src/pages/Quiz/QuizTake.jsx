@@ -52,6 +52,11 @@ const QuizTake = () => {
 
   const handleSubmitQuiz = async () => {
     try {
+      if (Object.keys(selectedAnswers).length !== quiz.questions.length) {
+        toast.error("Please answer all questions before submitting.");
+        return;
+      }
+
       setSubmitting(true);
 
       const formattedAnswers = Object.keys(selectedAnswers).map(

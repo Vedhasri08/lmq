@@ -40,7 +40,7 @@ const submitQuiz = async (quizId, answers) => {
   try {
     const response = await axiosInstance.post(
       API_PATHS.QUIZZES.SUBMIT_QUIZ(quizId),
-      { answers },
+      answers,
     );
     return response.data;
   } catch (error) {

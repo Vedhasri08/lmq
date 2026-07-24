@@ -113,6 +113,7 @@ export const getProfile = async (req, res, next) => {
     next(error);
   }
 };
+
 export const updateProfile = async (req, res, next) => {
   try {
     const { username, email, profileImage } = req.body;
@@ -138,6 +139,7 @@ export const updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
 export const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
